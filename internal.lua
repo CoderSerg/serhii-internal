@@ -40,12 +40,39 @@ local activeTabId = nil
 local tabIdCounter = 0
 local minimized = false
 local customScripts = {}
+local SCRIPTS_FILE = WORKSPACE_DIR .. "/scripts.json"
+
+local function saveScripts()
+	pcall(function()
+		local data = {}
+		for _, scr in customScripts do
+			table.insert(data, '{"name":"' .. scr.name:gsub('"', '\\"') .. '","code":"' .. scr.code:gsub('\\', '\\\\'):gsub('"', '\\"'):gsub('\n', '\\n'):gsub('\t', '\\t') .. '"}')
+		end
+		writefile(SCRIPTS_FILE, "[" .. table.concat(data, ",") .. "]")
+	end)
+end
+
+local function loadScripts()
+	pcall(function()
+		if not isfile(SCRIPTS_FILE) then return end
+		local raw = readfile(SCRIPTS_FILE)
+		local HttpService = game:GetService("HttpService")
+		local parsed = HttpService:JSONDecode(raw)
+		for _, entry in parsed do
+			if entry.name and entry.code then
+				table.insert(customScripts, { name = entry.name, code = entry.code })
+			end
+		end
+	end)
+end
 
 pcall(function()
 	if not isfolder(WORKSPACE_DIR) then
 		makefolder(WORKSPACE_DIR)
 	end
 end)
+
+loadScripts()
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "ExecutorUI"
@@ -853,12 +880,14 @@ end)
 
 getgenv().addScript = function(name, code)
 	table.insert(customScripts, { name = name, code = code })
+	saveScripts()
 end
 
 getgenv().removeScript = function(name)
 	for i, scr in customScripts do
 		if scr.name == name then
 			table.remove(customScripts, i)
+			saveScripts()
 			return true
 		end
 	end
