@@ -189,7 +189,8 @@ end
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "Main"
 mainFrame.Size = UDim2.new(0, 580, 0, 380)
-mainFrame.Position = UDim2.new(0.5, -290, 0.5, -190)
+mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 mainFrame.BackgroundColor3 = C.Base
 mainFrame.BorderSizePixel = 0
 mainFrame.Parent = screenGui
@@ -208,6 +209,41 @@ shadow.ScaleType = Enum.ScaleType.Slice
 shadow.SliceCenter = Rect.new(23, 23, 277, 277)
 shadow.ZIndex = 0
 shadow.Parent = mainFrame
+
+local launcher = Instance.new("TextButton")
+launcher.Name = "Launcher"
+launcher.Size = UDim2.new(0, 44, 0, 44)
+launcher.AnchorPoint = Vector2.new(1, 0)
+launcher.Position = UDim2.new(1, -16, 0, 16)
+launcher.BackgroundColor3 = C.Blue
+launcher.Text = ""
+launcher.AutoButtonColor = false
+launcher.Visible = false
+launcher.Parent = screenGui
+makeCorner(launcher, UDim.new(0, 12))
+
+local launcherShadow = Instance.new("ImageLabel")
+launcherShadow.Size = UDim2.new(1, 20, 1, 20)
+launcherShadow.Position = UDim2.new(0, -10, 0, -10)
+launcherShadow.BackgroundTransparency = 1
+launcherShadow.Image = "rbxassetid://5554236805"
+launcherShadow.ImageColor3 = C.Crust
+launcherShadow.ImageTransparency = 0.5
+launcherShadow.ScaleType = Enum.ScaleType.Slice
+launcherShadow.SliceCenter = Rect.new(23, 23, 277, 277)
+launcherShadow.ZIndex = 0
+launcherShadow.Parent = launcher
+
+local launcherIcon = makeIcon(launcher, "code", 22, C.Crust)
+launcherIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+launcherIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
+
+launcher.MouseEnter:Connect(function()
+	TweenService:Create(launcher, TWEEN_FAST, {BackgroundColor3 = C.Lavender}):Play()
+end)
+launcher.MouseLeave:Connect(function()
+	TweenService:Create(launcher, TWEEN_FAST, {BackgroundColor3 = C.Blue}):Play()
+end)
 
 local titleBar = Instance.new("Frame")
 titleBar.Name = "TitleBar"
@@ -1157,22 +1193,53 @@ clearBtn.MouseButton1Click:Connect(function()
 	end)
 end)
 
+local uiScale = Instance.new("UIScale")
+uiScale.Scale = 1
+uiScale.Parent = mainFrame
+
+local POP_TWEEN = TweenInfo.new(0.18, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+local POP_IN_TWEEN = TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+
+local function minimizeWindow()
+	if minimized then return end
+	minimized = true
+	local t = TweenService:Create(uiScale, POP_TWEEN, { Scale = 0 })
+	t:Play()
+	t.Completed:Once(function()
+		if minimized then
+			mainFrame.Visible = false
+		end
+	end)
+	launcher.Visible = true
+	launcher.Size = UDim2.new(0, 0, 0, 0)
+	TweenService:Create(launcher, POP_IN_TWEEN, { Size = UDim2.new(0, 44, 0, 44) }):Play()
+end
+
+local function restoreWindow()
+	if not minimized then return end
+	minimized = false
+	mainFrame.Visible = true
+	TweenService:Create(uiScale, POP_IN_TWEEN, { Scale = 1 }):Play()
+	local t = TweenService:Create(launcher, POP_TWEEN, { Size = UDim2.new(0, 0, 0, 0) })
+	t:Play()
+	t.Completed:Once(function()
+		if minimized == false then
+			launcher.Visible = false
+			launcher.Size = UDim2.new(0, 44, 0, 44)
+		end
+	end)
+end
+
 local function toggleMinimize()
-	minimized = not minimized
 	if minimized then
-		TweenService:Create(mainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-			Size = UDim2.new(0, 580, 0, 34)
-		}):Play()
-		contentFrame.Visible = false
+		restoreWindow()
 	else
-		contentFrame.Visible = true
-		TweenService:Create(mainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-			Size = UDim2.new(0, 580, 0, 380)
-		}):Play()
+		minimizeWindow()
 	end
 end
 
-minimizeBtn.MouseButton1Click:Connect(toggleMinimize)
+minimizeBtn.MouseButton1Click:Connect(minimizeWindow)
+launcher.MouseButton1Click:Connect(restoreWindow)
 
 closeBtn.MouseButton1Click:Connect(function()
 	local hasContent = false
