@@ -261,7 +261,8 @@ end)
 local function makeTitleBtn(iconName, posFromRight, color)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(0, 28, 0, 24)
-	btn.Position = UDim2.new(1, -(posFromRight * 32) - 8, 0, 5)
+	btn.AnchorPoint = Vector2.new(1, 0)
+	btn.Position = UDim2.new(1, -8 - (posFromRight * 32), 0, 5)
 	btn.BackgroundColor3 = C.Surface0
 	btn.BackgroundTransparency = 1
 	btn.Text = ""
