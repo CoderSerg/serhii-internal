@@ -33,13 +33,14 @@ local C = {
 	Peach = Color3.fromHex("#fab387"),
 }
 
-local CORNER_RADIUS = UDim.new(0, 8)
+local CORNER_RADIUS = UDim.new(0, 10)
 local CORNER_RADIUS_SM = UDim.new(0, 6)
 local FONT = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium)
 local FONT_BOLD = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold)
 local FONT_MONO = Font.new("rbxasset://fonts/families/RobotoMono.json", Enum.FontWeight.Regular)
-local TWEEN_FAST = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-local TWEEN_NOTIF = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local TWEEN_FAST = TweenInfo.new(0.12, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+local TWEEN_MED = TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+local TWEEN_NOTIF = TweenInfo.new(0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 
 local Lucide
 local LUCIDE_URLS = {
@@ -189,37 +190,40 @@ end
 
 local function notify(text, color)
 	local frame = Instance.new("Frame")
-	frame.Size = UDim2.new(1, 0, 0, 36)
+	frame.Size = UDim2.new(1, 0, 0, 40)
 	frame.BackgroundColor3 = C.Mantle
 	frame.BackgroundTransparency = 1
+	frame.ClipsDescendants = true
 	frame.Parent = notifContainer
 	makeCorner(frame, CORNER_RADIUS_SM)
-	makeStroke(frame, color or C.Surface1)
+	makeStroke(frame, C.Surface0)
 
 	local accent = Instance.new("Frame")
-	accent.Size = UDim2.new(0, 3, 0.6, 0)
-	accent.Position = UDim2.new(0, 6, 0.2, 0)
+	accent.Size = UDim2.new(0, 3, 0.5, 0)
+	accent.AnchorPoint = Vector2.new(0, 0.5)
+	accent.Position = UDim2.new(0, 8, 0.5, 0)
 	accent.BackgroundColor3 = color or C.Blue
 	accent.BorderSizePixel = 0
 	accent.Parent = frame
 	makeCorner(accent, UDim.new(0, 2))
 
 	local label = Instance.new("TextLabel")
-	label.Size = UDim2.new(1, -22, 1, 0)
-	label.Position = UDim2.new(0, 16, 0, 0)
+	label.Size = UDim2.new(1, -28, 1, 0)
+	label.Position = UDim2.new(0, 20, 0, 0)
 	label.BackgroundTransparency = 1
 	label.Text = text
-	label.TextColor3 = C.Text
+	label.TextColor3 = C.Subtext1
 	label.FontFace = FONT
 	label.TextSize = 12
 	label.TextXAlignment = Enum.TextXAlignment.Left
 	label.TextTruncate = Enum.TextTruncate.AtEnd
 	label.Parent = frame
 
-	TweenService:Create(frame, TWEEN_NOTIF, {BackgroundTransparency = 0}):Play()
+	frame.Position = UDim2.new(0, 20, 0, 0)
+	TweenService:Create(frame, TWEEN_NOTIF, {BackgroundTransparency = 0, Position = UDim2.new(0, 0, 0, 0)}):Play()
 
-	task.delay(3, function()
-		local t = TweenService:Create(frame, TWEEN_NOTIF, {BackgroundTransparency = 1})
+	task.delay(3.5, function()
+		local t = TweenService:Create(frame, TWEEN_NOTIF, {BackgroundTransparency = 1, Position = UDim2.new(0, 20, 0, 0)})
 		t:Play()
 		t.Completed:Wait()
 		frame:Destroy()
@@ -228,7 +232,7 @@ end
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "Main"
-mainFrame.Size = UDim2.new(0, 580, 0, 380)
+mainFrame.Size = UDim2.new(0, 600, 0, 400)
 mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 mainFrame.BackgroundColor3 = C.Base
@@ -239,12 +243,12 @@ makeStroke(mainFrame, C.Surface0)
 
 local shadow = Instance.new("ImageLabel")
 shadow.Name = "Shadow"
-shadow.Size = UDim2.new(1, 24, 1, 24)
-shadow.Position = UDim2.new(0, -12, 0, -12)
+shadow.Size = UDim2.new(1, 36, 1, 36)
+shadow.Position = UDim2.new(0, -18, 0, -18)
 shadow.BackgroundTransparency = 1
 shadow.Image = "rbxassetid://5554236805"
-shadow.ImageColor3 = C.Crust
-shadow.ImageTransparency = 0.4
+shadow.ImageColor3 = Color3.new(0, 0, 0)
+shadow.ImageTransparency = 0.55
 shadow.ScaleType = Enum.ScaleType.Slice
 shadow.SliceCenter = Rect.new(23, 23, 277, 277)
 shadow.ZIndex = 0
@@ -252,7 +256,7 @@ shadow.Parent = mainFrame
 
 local launcher = Instance.new("TextButton")
 launcher.Name = "Launcher"
-launcher.Size = UDim2.new(0, 44, 0, 44)
+launcher.Size = UDim2.new(0, 48, 0, 48)
 launcher.AnchorPoint = Vector2.new(1, 0)
 launcher.Position = UDim2.new(1, -16, 0, 16)
 launcher.BackgroundColor3 = C.Crust
@@ -260,7 +264,7 @@ launcher.Text = ""
 launcher.AutoButtonColor = false
 launcher.Visible = false
 launcher.Parent = screenGui
-makeCorner(launcher, UDim.new(0, 12))
+makeCorner(launcher, UDim.new(0, 14))
 
 local launcherShadow = Instance.new("ImageLabel")
 launcherShadow.Size = UDim2.new(1, 20, 1, 20)
@@ -274,38 +278,38 @@ launcherShadow.SliceCenter = Rect.new(23, 23, 277, 277)
 launcherShadow.ZIndex = 0
 launcherShadow.Parent = launcher
 
-local launcherIcon = makeIcon(launcher, "code", 22, C.Text)
+local launcherIcon = makeIcon(launcher, "code", 24, C.Text)
 launcherIcon.AnchorPoint = Vector2.new(0.5, 0.5)
 launcherIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
 
 launcher.MouseEnter:Connect(function()
-	TweenService:Create(launcher, TWEEN_FAST, {BackgroundColor3 = C.Mantle}):Play()
+	TweenService:Create(launcher, TWEEN_MED, {BackgroundColor3 = C.Mantle}):Play()
 end)
 launcher.MouseLeave:Connect(function()
-	TweenService:Create(launcher, TWEEN_FAST, {BackgroundColor3 = C.Crust}):Play()
+	TweenService:Create(launcher, TWEEN_MED, {BackgroundColor3 = C.Crust}):Play()
 end)
 
 local titleBar = Instance.new("Frame")
 titleBar.Name = "TitleBar"
-titleBar.Size = UDim2.new(1, 0, 0, 34)
+titleBar.Size = UDim2.new(1, 0, 0, 38)
 titleBar.BackgroundColor3 = C.Mantle
 titleBar.BorderSizePixel = 0
 titleBar.Parent = mainFrame
 makeCorner(titleBar)
 
 local titleBarMask = Instance.new("Frame")
-titleBarMask.Size = UDim2.new(1, 0, 0, 12)
-titleBarMask.Position = UDim2.new(0, 0, 1, -12)
+titleBarMask.Size = UDim2.new(1, 0, 0, 14)
+titleBarMask.Position = UDim2.new(0, 0, 1, -14)
 titleBarMask.BackgroundColor3 = C.Mantle
 titleBarMask.BorderSizePixel = 0
 titleBarMask.Parent = titleBar
 
 local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(0, 120, 1, 0)
-titleLabel.Position = UDim2.new(0, 12, 0, 0)
+titleLabel.Size = UDim2.new(0, 140, 1, 0)
+titleLabel.Position = UDim2.new(0, 14, 0, 0)
 titleLabel.BackgroundTransparency = 1
 titleLabel.Text = "Serhii Internal"
-titleLabel.TextColor3 = C.Subtext0
+titleLabel.TextColor3 = C.Overlay0
 titleLabel.FontFace = FONT_BOLD
 titleLabel.TextSize = 12
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -336,9 +340,9 @@ end)
 
 local function makeTitleBtn(iconName, posFromRight, color)
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(0, 28, 0, 24)
-	btn.AnchorPoint = Vector2.new(1, 0)
-	btn.Position = UDim2.new(1, -8 - (posFromRight * 32), 0, 5)
+	btn.Size = UDim2.new(0, 30, 0, 26)
+	btn.AnchorPoint = Vector2.new(1, 0.5)
+	btn.Position = UDim2.new(1, -8 - (posFromRight * 34), 0.5, 0)
 	btn.BackgroundColor3 = C.Surface0
 	btn.BackgroundTransparency = 1
 	btn.Text = ""
@@ -373,7 +377,7 @@ dialogOverlay.Parent = mainFrame
 
 local function showDialog(title, message, onConfirm, onCancel)
 	dialogOverlay.Visible = true
-	TweenService:Create(dialogOverlay, TWEEN_FAST, {BackgroundTransparency = 0.5}):Play()
+	TweenService:Create(dialogOverlay, TWEEN_MED, {BackgroundTransparency = 0.5}):Play()
 
 	for _, child in dialogOverlay:GetChildren() do child:Destroy() end
 
@@ -453,7 +457,7 @@ end
 
 local function showInputDialog(title, placeholder, default, onSubmit)
 	dialogOverlay.Visible = true
-	TweenService:Create(dialogOverlay, TWEEN_FAST, {BackgroundTransparency = 0.5}):Play()
+	TweenService:Create(dialogOverlay, TWEEN_MED, {BackgroundTransparency = 0.5}):Play()
 
 	for _, child in dialogOverlay:GetChildren() do child:Destroy() end
 
@@ -551,15 +555,15 @@ end
 
 local contentFrame = Instance.new("Frame")
 contentFrame.Name = "Content"
-contentFrame.Size = UDim2.new(1, 0, 1, -34)
-contentFrame.Position = UDim2.new(0, 0, 0, 34)
+contentFrame.Size = UDim2.new(1, 0, 1, -38)
+contentFrame.Position = UDim2.new(0, 0, 0, 38)
 contentFrame.BackgroundTransparency = 1
 contentFrame.ClipsDescendants = true
 contentFrame.Parent = mainFrame
 
 local tabBar = Instance.new("Frame")
 tabBar.Name = "TabBar"
-tabBar.Size = UDim2.new(1, 0, 0, 30)
+tabBar.Size = UDim2.new(1, 0, 0, 32)
 tabBar.BackgroundColor3 = C.Crust
 tabBar.BorderSizePixel = 0
 tabBar.Parent = contentFrame
@@ -603,23 +607,31 @@ end)
 
 local editorContainer = Instance.new("Frame")
 editorContainer.Name = "Editor"
-editorContainer.Size = UDim2.new(1, 0, 1, -68)
-editorContainer.Position = UDim2.new(0, 0, 0, 30)
+editorContainer.Size = UDim2.new(1, 0, 1, -74)
+editorContainer.Position = UDim2.new(0, 0, 0, 32)
 editorContainer.BackgroundColor3 = C.Base
 editorContainer.BorderSizePixel = 0
 editorContainer.Parent = contentFrame
 
 local lineNumbers = Instance.new("ScrollingFrame")
-lineNumbers.Size = UDim2.new(0, 36, 1, 0)
+lineNumbers.Size = UDim2.new(0, 40, 1, 0)
 lineNumbers.BackgroundColor3 = C.Mantle
 lineNumbers.BorderSizePixel = 0
 lineNumbers.ScrollBarThickness = 0
 lineNumbers.CanvasSize = UDim2.new(0, 0, 0, 0)
 lineNumbers.Parent = editorContainer
 
+local gutterSep = Instance.new("Frame")
+gutterSep.Size = UDim2.new(0, 1, 1, -8)
+gutterSep.AnchorPoint = Vector2.new(0, 0.5)
+gutterSep.Position = UDim2.new(0, 40, 0.5, 0)
+gutterSep.BackgroundColor3 = C.Surface0
+gutterSep.BorderSizePixel = 0
+gutterSep.Parent = editorContainer
+
 local lineNumLabel = Instance.new("TextLabel")
-lineNumLabel.Size = UDim2.new(1, -8, 1, 0)
-lineNumLabel.Position = UDim2.new(0, 4, 0, 4)
+lineNumLabel.Size = UDim2.new(1, -10, 1, 0)
+lineNumLabel.Position = UDim2.new(0, 4, 0, 6)
 lineNumLabel.BackgroundTransparency = 1
 lineNumLabel.Text = "1"
 lineNumLabel.TextColor3 = C.Surface2
@@ -630,8 +642,8 @@ lineNumLabel.TextYAlignment = Enum.TextYAlignment.Top
 lineNumLabel.Parent = lineNumbers
 
 local editorScroll = Instance.new("ScrollingFrame")
-editorScroll.Size = UDim2.new(1, -36, 1, 0)
-editorScroll.Position = UDim2.new(0, 36, 0, 0)
+editorScroll.Size = UDim2.new(1, -40, 1, 0)
+editorScroll.Position = UDim2.new(0, 40, 0, 0)
 editorScroll.BackgroundColor3 = C.Base
 editorScroll.BorderSizePixel = 0
 editorScroll.ScrollBarThickness = 4
@@ -641,8 +653,8 @@ editorScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
 editorScroll.Parent = editorContainer
 
 local editorBox = Instance.new("TextBox")
-editorBox.Size = UDim2.new(1, -12, 1, 0)
-editorBox.Position = UDim2.new(0, 8, 0, 4)
+editorBox.Size = UDim2.new(1, -16, 1, 0)
+editorBox.Position = UDim2.new(0, 10, 0, 6)
 editorBox.BackgroundTransparency = 1
 editorBox.Text = ""
 editorBox.PlaceholderText = ""
@@ -660,8 +672,8 @@ editorBox.ZIndex = 2
 editorBox.Parent = editorScroll
 
 local highlightLabel = Instance.new("TextLabel")
-highlightLabel.Size = UDim2.new(1, -12, 1, 0)
-highlightLabel.Position = UDim2.new(0, 8, 0, 4)
+highlightLabel.Size = UDim2.new(1, -16, 1, 0)
+highlightLabel.Position = UDim2.new(0, 10, 0, 6)
 highlightLabel.BackgroundTransparency = 1
 highlightLabel.Text = ""
 highlightLabel.TextColor3 = C.Text
@@ -819,8 +831,8 @@ updateHighlight()
 
 local toolbar = Instance.new("Frame")
 toolbar.Name = "Toolbar"
-toolbar.Size = UDim2.new(1, 0, 0, 38)
-toolbar.Position = UDim2.new(0, 0, 1, -38)
+toolbar.Size = UDim2.new(1, 0, 0, 42)
+toolbar.Position = UDim2.new(0, 0, 1, -42)
 toolbar.BackgroundColor3 = C.Mantle
 toolbar.BorderSizePixel = 0
 toolbar.Parent = contentFrame
@@ -828,17 +840,17 @@ toolbar.Parent = contentFrame
 local toolbarLayout = Instance.new("UIListLayout")
 toolbarLayout.FillDirection = Enum.FillDirection.Horizontal
 toolbarLayout.SortOrder = Enum.SortOrder.LayoutOrder
-toolbarLayout.Padding = UDim.new(0, 4)
+toolbarLayout.Padding = UDim.new(0, 6)
 toolbarLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 toolbarLayout.Parent = toolbar
 
 local toolbarPad = Instance.new("UIPadding")
-toolbarPad.PaddingLeft = UDim.new(0, 8)
+toolbarPad.PaddingLeft = UDim.new(0, 10)
 toolbarPad.Parent = toolbar
 
 local function makeToolBtn(text, iconName, color, order)
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(0, 0, 0, 28)
+	btn.Size = UDim2.new(0, 0, 0, 30)
 	btn.AutomaticSize = Enum.AutomaticSize.X
 	btn.BackgroundColor3 = color or C.Surface0
 	btn.Text = ""
@@ -848,8 +860,8 @@ local function makeToolBtn(text, iconName, color, order)
 	makeCorner(btn, CORNER_RADIUS_SM)
 
 	local pad = Instance.new("UIPadding")
-	pad.PaddingLeft = UDim.new(0, 12)
-	pad.PaddingRight = UDim.new(0, 12)
+	pad.PaddingLeft = UDim.new(0, 14)
+	pad.PaddingRight = UDim.new(0, 14)
 	pad.Parent = btn
 
 	local row = Instance.new("UIListLayout")
@@ -878,14 +890,14 @@ local function makeToolBtn(text, iconName, color, order)
 
 	btn.MouseEnter:Connect(function()
 		local c = color or C.Surface0
-		TweenService:Create(btn, TWEEN_FAST, {BackgroundColor3 = Color3.new(
-			math.min(1, c.R + 0.08),
-			math.min(1, c.G + 0.08),
-			math.min(1, c.B + 0.08)
+		TweenService:Create(btn, TWEEN_MED, {BackgroundColor3 = Color3.new(
+			math.min(1, c.R + 0.06),
+			math.min(1, c.G + 0.06),
+			math.min(1, c.B + 0.06)
 		)}):Play()
 	end)
 	btn.MouseLeave:Connect(function()
-		TweenService:Create(btn, TWEEN_FAST, {BackgroundColor3 = color or C.Surface0}):Play()
+		TweenService:Create(btn, TWEEN_MED, {BackgroundColor3 = color or C.Surface0}):Play()
 	end)
 
 	return btn
@@ -1237,8 +1249,8 @@ local uiScale = Instance.new("UIScale")
 uiScale.Scale = 1
 uiScale.Parent = mainFrame
 
-local POP_TWEEN = TweenInfo.new(0.18, Enum.EasingStyle.Back, Enum.EasingDirection.In)
-local POP_IN_TWEEN = TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+local POP_TWEEN = TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+local POP_IN_TWEEN = TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 
 local function minimizeWindow()
 	if minimized then return end
@@ -1252,7 +1264,7 @@ local function minimizeWindow()
 	end)
 	launcher.Visible = true
 	launcher.Size = UDim2.new(0, 0, 0, 0)
-	TweenService:Create(launcher, POP_IN_TWEEN, { Size = UDim2.new(0, 44, 0, 44) }):Play()
+	TweenService:Create(launcher, POP_IN_TWEEN, { Size = UDim2.new(0, 48, 0, 48) }):Play()
 end
 
 local function restoreWindow()
@@ -1265,7 +1277,7 @@ local function restoreWindow()
 	t.Completed:Once(function()
 		if minimized == false then
 			launcher.Visible = false
-			launcher.Size = UDim2.new(0, 44, 0, 44)
+			launcher.Size = UDim2.new(0, 48, 0, 48)
 		end
 	end)
 end
