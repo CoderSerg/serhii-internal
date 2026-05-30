@@ -223,7 +223,7 @@ launcher.Name = "Launcher"
 launcher.Size = UDim2.new(0, 44, 0, 44)
 launcher.AnchorPoint = Vector2.new(1, 0)
 launcher.Position = UDim2.new(1, -16, 0, 16)
-launcher.BackgroundColor3 = C.Blue
+launcher.BackgroundColor3 = C.Crust
 launcher.Text = ""
 launcher.AutoButtonColor = false
 launcher.Visible = false
@@ -242,15 +242,15 @@ launcherShadow.SliceCenter = Rect.new(23, 23, 277, 277)
 launcherShadow.ZIndex = 0
 launcherShadow.Parent = launcher
 
-local launcherIcon = makeIcon(launcher, "code", 22, C.Crust)
+local launcherIcon = makeIcon(launcher, "code", 22, C.Text)
 launcherIcon.AnchorPoint = Vector2.new(0.5, 0.5)
 launcherIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
 
 launcher.MouseEnter:Connect(function()
-	TweenService:Create(launcher, TWEEN_FAST, {BackgroundColor3 = C.Lavender}):Play()
+	TweenService:Create(launcher, TWEEN_FAST, {BackgroundColor3 = C.Mantle}):Play()
 end)
 launcher.MouseLeave:Connect(function()
-	TweenService:Create(launcher, TWEEN_FAST, {BackgroundColor3 = C.Blue}):Play()
+	TweenService:Create(launcher, TWEEN_FAST, {BackgroundColor3 = C.Crust}):Play()
 end)
 
 local titleBar = Instance.new("Frame")
