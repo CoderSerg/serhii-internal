@@ -33,7 +33,7 @@ local FONT_MONO = Font.new("rbxasset://fonts/families/RobotoMono.json", Enum.Fon
 local TWEEN_FAST = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 local TWEEN_NOTIF = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
-local WORKSPACE_DIR = "executor_workspace"
+local WORKSPACE_DIR = "serhii-internal"
 
 local tabs = {}
 local activeTabId = nil
