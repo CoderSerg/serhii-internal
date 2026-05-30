@@ -3,6 +3,14 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 
+if getgenv().__serhiiInternalLoaded then
+	if getgenv().executor and getgenv().executor.restore then
+		getgenv().executor.restore()
+	end
+	return
+end
+getgenv().__serhiiInternalLoaded = true
+
 local player = Players.LocalPlayer
 
 local C = {
@@ -1251,9 +1259,11 @@ closeBtn.MouseButton1Click:Connect(function()
 	end
 	if hasContent then
 		showDialog("Close Executor", "You have unsaved work. Are you sure you want to close?", function()
+			getgenv().__serhiiInternalLoaded = nil
 			screenGui:Destroy()
 		end)
 	else
+		getgenv().__serhiiInternalLoaded = nil
 		screenGui:Destroy()
 	end
 end)
@@ -1267,6 +1277,13 @@ UserInputService.InputBegan:Connect(function(input, processed)
 end)
 
 getgenv().addScript = function(name, code)
+	for _, scr in customScripts do
+		if scr.name == name then
+			scr.code = code
+			saveScripts()
+			return
+		end
+	end
 	table.insert(customScripts, { name = name, code = code })
 	saveScripts()
 end
@@ -1405,11 +1422,14 @@ getgenv().executor = {
 
 	minimize = toggleMinimize,
 
+	restore = restoreWindow,
+
 	isMinimized = function()
 		return minimized
 	end,
 
 	destroy = function()
+		getgenv().__serhiiInternalLoaded = nil
 		screenGui:Destroy()
 	end,
 }
