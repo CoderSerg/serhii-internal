@@ -33,6 +33,37 @@ local FONT_MONO = Font.new("rbxasset://fonts/families/RobotoMono.json", Enum.Fon
 local TWEEN_FAST = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 local TWEEN_NOTIF = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
+local Lucide
+pcall(function()
+	Lucide = loadstring(game:HttpGet("https://github.com/latte-soft/lucide-roblox/releases/latest/download/lucide-roblox.luau", false))()
+end)
+
+local function nearestIconSize(s)
+	if s <= 16 then return 16
+	elseif s <= 24 then return 24
+	elseif s <= 48 then return 48
+	else return 256 end
+end
+
+local function makeIcon(parent, name, size, color)
+	local img = Instance.new("ImageLabel")
+	img.Size = UDim2.new(0, size, 0, size)
+	img.BackgroundTransparency = 1
+	img.ImageColor3 = color or C.Text
+	img.Parent = parent
+
+	if Lucide then
+		local ok, asset = pcall(Lucide.GetAsset, name, nearestIconSize(size))
+		if ok and asset then
+			img.Image = asset.Url
+			if asset.ImageRectOffset then img.ImageRectOffset = asset.ImageRectOffset end
+			if asset.ImageRectSize then img.ImageRectSize = asset.ImageRectSize end
+		end
+	end
+
+	return img
+end
+
 local WORKSPACE_DIR = "serhii-internal"
 
 local tabs = {}
@@ -87,8 +118,9 @@ end
 
 local notifContainer = Instance.new("Frame")
 notifContainer.Name = "Notifications"
-notifContainer.Size = UDim2.new(0, 280, 1, 0)
-notifContainer.Position = UDim2.new(1, -290, 0, 10)
+notifContainer.AnchorPoint = Vector2.new(1, 1)
+notifContainer.Size = UDim2.new(0, 280, 0, 400)
+notifContainer.Position = UDim2.new(1, -16, 1, -80)
 notifContainer.BackgroundTransparency = 1
 notifContainer.Parent = screenGui
 
@@ -225,18 +257,20 @@ UserInputService.InputChanged:Connect(function(input)
 	end
 end)
 
-local function makeTitleBtn(icon, posFromRight, color)
+local function makeTitleBtn(iconName, posFromRight, color)
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(0, 28, 0, 22)
-	btn.Position = UDim2.new(1, -(posFromRight * 32) - 8, 0, 6)
+	btn.Size = UDim2.new(0, 26, 0, 22)
+	btn.Position = UDim2.new(1, -(posFromRight * 30) - 8, 0, 6)
 	btn.BackgroundColor3 = C.Surface0
 	btn.BackgroundTransparency = 1
-	btn.Text = icon
-	btn.TextColor3 = color or C.Subtext0
-	btn.FontFace = FONT_BOLD
-	btn.TextSize = 14
+	btn.Text = ""
+	btn.AutoButtonColor = false
 	btn.Parent = titleBar
 	makeCorner(btn, CORNER_RADIUS_SM)
+
+	local icon = makeIcon(btn, iconName, 14, color or C.Subtext0)
+	icon.AnchorPoint = Vector2.new(0.5, 0.5)
+	icon.Position = UDim2.new(0.5, 0, 0.5, 0)
 
 	btn.MouseEnter:Connect(function()
 		TweenService:Create(btn, TWEEN_FAST, {BackgroundTransparency = 0}):Play()
@@ -247,8 +281,8 @@ local function makeTitleBtn(icon, posFromRight, color)
 	return btn
 end
 
-local closeBtn = makeTitleBtn("X", 0, C.Red)
-local minimizeBtn = makeTitleBtn("_", 1, C.Yellow)
+local closeBtn = makeTitleBtn("x", 0, C.Red)
+local minimizeBtn = makeTitleBtn("minus", 1, C.Yellow)
 
 local dialogOverlay = Instance.new("Frame")
 dialogOverlay.Name = "DialogOverlay"
@@ -339,6 +373,104 @@ local function showDialog(title, message, onConfirm, onCancel)
 	end)
 end
 
+local function showInputDialog(title, placeholder, default, onSubmit)
+	dialogOverlay.Visible = true
+	TweenService:Create(dialogOverlay, TWEEN_FAST, {BackgroundTransparency = 0.5}):Play()
+
+	for _, child in dialogOverlay:GetChildren() do child:Destroy() end
+
+	local dialog = Instance.new("Frame")
+	dialog.Size = UDim2.new(0, 300, 0, 140)
+	dialog.Position = UDim2.new(0.5, -150, 0.5, -70)
+	dialog.BackgroundColor3 = C.Mantle
+	dialog.BorderSizePixel = 0
+	dialog.ZIndex = 51
+	dialog.Parent = dialogOverlay
+	makeCorner(dialog)
+	makeStroke(dialog, C.Surface1)
+
+	local tLabel = Instance.new("TextLabel")
+	tLabel.Size = UDim2.new(1, -24, 0, 24)
+	tLabel.Position = UDim2.new(0, 12, 0, 14)
+	tLabel.BackgroundTransparency = 1
+	tLabel.Text = title
+	tLabel.TextColor3 = C.Text
+	tLabel.FontFace = FONT_BOLD
+	tLabel.TextSize = 14
+	tLabel.TextXAlignment = Enum.TextXAlignment.Left
+	tLabel.ZIndex = 52
+	tLabel.Parent = dialog
+
+	local inputFrame = Instance.new("Frame")
+	inputFrame.Size = UDim2.new(1, -24, 0, 32)
+	inputFrame.Position = UDim2.new(0, 12, 0, 44)
+	inputFrame.BackgroundColor3 = C.Base
+	inputFrame.BorderSizePixel = 0
+	inputFrame.ZIndex = 52
+	inputFrame.Parent = dialog
+	makeCorner(inputFrame, CORNER_RADIUS_SM)
+	makeStroke(inputFrame, C.Surface1)
+
+	local input = Instance.new("TextBox")
+	input.Size = UDim2.new(1, -16, 1, 0)
+	input.Position = UDim2.new(0, 10, 0, 0)
+	input.BackgroundTransparency = 1
+	input.Text = default or ""
+	input.PlaceholderText = placeholder or ""
+	input.PlaceholderColor3 = C.Surface2
+	input.TextColor3 = C.Text
+	input.FontFace = FONT
+	input.TextSize = 12
+	input.TextXAlignment = Enum.TextXAlignment.Left
+	input.ClearTextOnFocus = false
+	input.ZIndex = 53
+	input.Parent = inputFrame
+
+	local function closeDialog()
+		TweenService:Create(dialogOverlay, TWEEN_FAST, {BackgroundTransparency = 1}):Play()
+		task.delay(0.15, function() dialogOverlay.Visible = false end)
+	end
+
+	local submitBtn = Instance.new("TextButton")
+	submitBtn.Size = UDim2.new(0, 80, 0, 30)
+	submitBtn.Position = UDim2.new(1, -100, 1, -44)
+	submitBtn.BackgroundColor3 = C.Blue
+	submitBtn.Text = "Save"
+	submitBtn.TextColor3 = C.Crust
+	submitBtn.FontFace = FONT_BOLD
+	submitBtn.TextSize = 12
+	submitBtn.ZIndex = 52
+	submitBtn.Parent = dialog
+	makeCorner(submitBtn, CORNER_RADIUS_SM)
+
+	local cancelBtn = Instance.new("TextButton")
+	cancelBtn.Size = UDim2.new(0, 70, 0, 30)
+	cancelBtn.Position = UDim2.new(1, -180, 1, -44)
+	cancelBtn.BackgroundColor3 = C.Surface0
+	cancelBtn.Text = "Cancel"
+	cancelBtn.TextColor3 = C.Text
+	cancelBtn.FontFace = FONT
+	cancelBtn.TextSize = 12
+	cancelBtn.ZIndex = 52
+	cancelBtn.Parent = dialog
+	makeCorner(cancelBtn, CORNER_RADIUS_SM)
+
+	local function submit()
+		local value = input.Text
+		if value == "" then return end
+		closeDialog()
+		if onSubmit then onSubmit(value) end
+	end
+
+	submitBtn.MouseButton1Click:Connect(submit)
+	input.FocusLost:Connect(function(enter)
+		if enter then submit() end
+	end)
+	cancelBtn.MouseButton1Click:Connect(closeDialog)
+
+	task.defer(function() input:CaptureFocus() end)
+end
+
 local contentFrame = Instance.new("Frame")
 contentFrame.Name = "Content"
 contentFrame.Size = UDim2.new(1, 0, 1, -34)
@@ -375,18 +507,20 @@ addTabBtn.Size = UDim2.new(0, 30, 1, 0)
 addTabBtn.Position = UDim2.new(1, -30, 0, 0)
 addTabBtn.BackgroundColor3 = C.Crust
 addTabBtn.BackgroundTransparency = 1
-addTabBtn.Text = "+"
-addTabBtn.TextColor3 = C.Overlay0
-addTabBtn.FontFace = FONT_BOLD
-addTabBtn.TextSize = 16
+addTabBtn.Text = ""
+addTabBtn.AutoButtonColor = false
 addTabBtn.BorderSizePixel = 0
 addTabBtn.Parent = tabBar
 
+local addTabIcon = makeIcon(addTabBtn, "plus", 14, C.Overlay0)
+addTabIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+addTabIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
+
 addTabBtn.MouseEnter:Connect(function()
-	TweenService:Create(addTabBtn, TWEEN_FAST, {TextColor3 = C.Text}):Play()
+	TweenService:Create(addTabIcon, TWEEN_FAST, {ImageColor3 = C.Text}):Play()
 end)
 addTabBtn.MouseLeave:Connect(function()
-	TweenService:Create(addTabBtn, TWEEN_FAST, {TextColor3 = C.Overlay0}):Play()
+	TweenService:Create(addTabIcon, TWEEN_FAST, {ImageColor3 = C.Overlay0}):Play()
 end)
 
 local editorContainer = Instance.new("Frame")
@@ -433,9 +567,10 @@ editorBox.Size = UDim2.new(1, -12, 1, 0)
 editorBox.Position = UDim2.new(0, 8, 0, 4)
 editorBox.BackgroundTransparency = 1
 editorBox.Text = ""
-editorBox.PlaceholderText = "-- start typing..."
+editorBox.PlaceholderText = ""
 editorBox.PlaceholderColor3 = C.Surface2
 editorBox.TextColor3 = C.Text
+editorBox.TextTransparency = 1
 editorBox.FontFace = FONT_MONO
 editorBox.TextSize = 13
 editorBox.TextXAlignment = Enum.TextXAlignment.Left
@@ -443,7 +578,123 @@ editorBox.TextYAlignment = Enum.TextYAlignment.Top
 editorBox.ClearTextOnFocus = false
 editorBox.MultiLine = true
 editorBox.TextWrapped = false
+editorBox.ZIndex = 2
 editorBox.Parent = editorScroll
+
+local highlightLabel = Instance.new("TextLabel")
+highlightLabel.Size = UDim2.new(1, -12, 1, 0)
+highlightLabel.Position = UDim2.new(0, 8, 0, 4)
+highlightLabel.BackgroundTransparency = 1
+highlightLabel.Text = ""
+highlightLabel.TextColor3 = C.Text
+highlightLabel.FontFace = FONT_MONO
+highlightLabel.TextSize = 13
+highlightLabel.TextXAlignment = Enum.TextXAlignment.Left
+highlightLabel.TextYAlignment = Enum.TextYAlignment.Top
+highlightLabel.RichText = true
+highlightLabel.Active = false
+highlightLabel.Selectable = false
+highlightLabel.ZIndex = 1
+highlightLabel.Parent = editorScroll
+
+local KEYWORDS = {
+	["and"]=true,["break"]=true,["do"]=true,["else"]=true,["elseif"]=true,
+	["end"]=true,["for"]=true,["function"]=true,["if"]=true,["in"]=true,
+	["local"]=true,["not"]=true,["or"]=true,["repeat"]=true,["return"]=true,
+	["then"]=true,["until"]=true,["while"]=true,["continue"]=true,
+}
+local LITERALS = { ["true"]=true, ["false"]=true, ["nil"]=true }
+local BUILTINS = {
+	print=true,warn=true,error=true,assert=true,pcall=true,xpcall=true,
+	type=true,tostring=true,tonumber=true,pairs=true,ipairs=true,next=true,
+	select=true,unpack=true,setmetatable=true,getmetatable=true,rawget=true,
+	rawset=true,rawequal=true,rawlen=true,string=true,table=true,math=true,
+	os=true,coroutine=true,bit32=true,buffer=true,utf8=true,debug=true,
+	game=true,workspace=true,script=true,wait=true,task=true,shared=true,
+	loadstring=true,require=true,getgenv=true,getfenv=true,setfenv=true,
+	Instance=true,Color3=true,Vector3=true,Vector2=true,UDim=true,UDim2=true,
+	CFrame=true,Enum=true,Ray=true,Rect=true,Region3=true,TweenInfo=true,
+	BrickColor=true,NumberRange=true,NumberSequence=true,ColorSequence=true,
+	addScript=true,removeScript=true,listScripts=true,executor=true,
+	loadfile=true,readfile=true,writefile=true,isfile=true,isfolder=true,
+	makefolder=true,delfile=true,delfolder=true,listfiles=true,httpget=true,
+}
+
+local function htmlEscape(s)
+	return (s:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"):gsub('"', "&quot;"))
+end
+
+local function highlight(code)
+	local out = {}
+	local i, n = 1, #code
+	while i <= n do
+		local two = code:sub(i, i + 1)
+		local c = code:sub(i, i)
+		if two == "--" then
+			if code:sub(i + 2, i + 3) == "[[" then
+				local endIdx = code:find("]]", i + 4, true)
+				local final = endIdx and (endIdx + 1) or n
+				table.insert(out, '<font color="#6c7086">' .. htmlEscape(code:sub(i, final)) .. '</font>')
+				i = final + 1
+			else
+				local endIdx = code:find("\n", i, true) or (n + 1)
+				table.insert(out, '<font color="#6c7086">' .. htmlEscape(code:sub(i, endIdx - 1)) .. '</font>')
+				i = endIdx
+			end
+		elseif c == '"' or c == "'" then
+			local quote = c
+			local j = i + 1
+			while j <= n do
+				local ch = code:sub(j, j)
+				if ch == "\\" then
+					j += 2
+				elseif ch == quote or ch == "\n" then
+					break
+				else
+					j += 1
+				end
+			end
+			table.insert(out, '<font color="#a6e3a1">' .. htmlEscape(code:sub(i, j)) .. '</font>')
+			i = j + 1
+		elseif two == "[[" then
+			local endIdx = code:find("]]", i + 2, true)
+			local final = endIdx and (endIdx + 1) or n
+			table.insert(out, '<font color="#a6e3a1">' .. htmlEscape(code:sub(i, final)) .. '</font>')
+			i = final + 1
+		elseif c:match("%d") then
+			local m = code:sub(i):match("^[%d][%w%.]*")
+			table.insert(out, '<font color="#fab387">' .. m .. '</font>')
+			i += #m
+		elseif c:match("[%a_]") then
+			local m = code:sub(i):match("^[%a_][%w_]*")
+			local color
+			if KEYWORDS[m] then
+				color = "#cba6f7"
+			elseif LITERALS[m] then
+				color = "#fab387"
+			elseif BUILTINS[m] then
+				color = "#89b4fa"
+			else
+				local after = code:sub(i + #m):match("^%s*(.)")
+				if after == "(" then
+					color = "#f9e2af"
+				end
+			end
+			if color then
+				table.insert(out, '<font color="' .. color .. '">' .. m .. '</font>')
+			else
+				table.insert(out, htmlEscape(m))
+			end
+			i += #m
+		else
+			table.insert(out, htmlEscape(c))
+			i += 1
+		end
+	end
+	return table.concat(out)
+end
+
+local PLACEHOLDER = "-- hello brother noah"
 
 local function updateLineNumbers()
 	local text = editorBox.Text
@@ -458,12 +709,24 @@ local function updateLineNumbers()
 	lineNumLabel.Text = table.concat(lines, "\n")
 end
 
+local function updateHighlight()
+	local text = editorBox.Text
+	if text == "" then
+		highlightLabel.Text = '<font color="#585b70">' .. PLACEHOLDER .. '</font>'
+	else
+		highlightLabel.Text = highlight(text)
+	end
+end
+
 editorBox:GetPropertyChangedSignal("Text"):Connect(function()
 	updateLineNumbers()
+	updateHighlight()
 	if activeTabId and tabs[activeTabId] then
 		tabs[activeTabId].content = editorBox.Text
 	end
 end)
+
+updateHighlight()
 
 local toolbar = Instance.new("Frame")
 toolbar.Name = "Toolbar"
@@ -484,13 +747,14 @@ local toolbarPad = Instance.new("UIPadding")
 toolbarPad.PaddingLeft = UDim.new(0, 8)
 toolbarPad.Parent = toolbar
 
-local function makeToolBtn(text, color, order)
+local function makeToolBtn(text, iconName, color, order)
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(0, 0, 0, 26)
+	btn.Size = UDim2.new(0, 0, 0, 28)
 	btn.AutomaticSize = Enum.AutomaticSize.X
 	btn.BackgroundColor3 = color or C.Surface0
 	btn.Text = ""
 	btn.LayoutOrder = order or 0
+	btn.AutoButtonColor = false
 	btn.Parent = toolbar
 	makeCorner(btn, CORNER_RADIUS_SM)
 
@@ -499,20 +763,36 @@ local function makeToolBtn(text, color, order)
 	pad.PaddingRight = UDim.new(0, 12)
 	pad.Parent = btn
 
+	local row = Instance.new("UIListLayout")
+	row.FillDirection = Enum.FillDirection.Horizontal
+	row.VerticalAlignment = Enum.VerticalAlignment.Center
+	row.SortOrder = Enum.SortOrder.LayoutOrder
+	row.Padding = UDim.new(0, 6)
+	row.Parent = btn
+
+	local isColored = (color == C.Green or color == C.Blue or color == C.Red or color == C.Yellow or color == C.Mauve)
+	local fgColor = isColored and C.Crust or C.Text
+
+	local icon = makeIcon(btn, iconName, 14, fgColor)
+	icon.LayoutOrder = 1
+
 	local label = Instance.new("TextLabel")
-	label.Size = UDim2.new(1, 0, 1, 0)
+	label.Size = UDim2.new(0, 0, 1, 0)
+	label.AutomaticSize = Enum.AutomaticSize.X
 	label.BackgroundTransparency = 1
 	label.Text = text
-	label.TextColor3 = (color == C.Green or color == C.Blue or color == C.Red or color == C.Yellow) and C.Crust or C.Text
+	label.TextColor3 = fgColor
 	label.FontFace = FONT_BOLD
 	label.TextSize = 11
+	label.LayoutOrder = 2
 	label.Parent = btn
 
 	btn.MouseEnter:Connect(function()
+		local c = color or C.Surface0
 		TweenService:Create(btn, TWEEN_FAST, {BackgroundColor3 = Color3.new(
-			math.min(1, (color or C.Surface0).R + 0.08),
-			math.min(1, (color or C.Surface0).G + 0.08),
-			math.min(1, (color or C.Surface0).B + 0.08)
+			math.min(1, c.R + 0.08),
+			math.min(1, c.G + 0.08),
+			math.min(1, c.B + 0.08)
 		)}):Play()
 	end)
 	btn.MouseLeave:Connect(function()
@@ -522,12 +802,11 @@ local function makeToolBtn(text, color, order)
 	return btn
 end
 
-local execBtn = makeToolBtn("Execute", C.Green, 1)
-local openBtn = makeToolBtn("Open", C.Surface0, 2)
-local saveBtn = makeToolBtn("Save", C.Blue, 3)
-local clearBtn = makeToolBtn("Clear", C.Surface0, 4)
-local scriptsBtn = makeToolBtn("Scripts", C.Mauve, 5)
-local minimizeToolBtn = makeToolBtn("Minimize", C.Surface0, 6)
+local execBtn = makeToolBtn("Execute", "play", C.Blue, 1)
+local openBtn = makeToolBtn("Open", "folder-open", C.Surface0, 2)
+local saveBtn = makeToolBtn("Save", "save", C.Surface0, 3)
+local clearBtn = makeToolBtn("Clear", "trash-2", C.Surface0, 4)
+local scriptsBtn = makeToolBtn("Scripts", "list", C.Surface0, 5)
 
 local scriptsMenu = Instance.new("Frame")
 scriptsMenu.Name = "ScriptsMenu"
@@ -627,12 +906,20 @@ local function renderTabs()
 		tab.Text = ""
 		tab.LayoutOrder = tabData.order
 		tab.BorderSizePixel = 0
+		tab.AutoButtonColor = false
 		tab.Parent = tabScroll
 
 		local tabPad = Instance.new("UIPadding")
-		tabPad.PaddingLeft = UDim.new(0, 10)
-		tabPad.PaddingRight = UDim.new(0, 6)
+		tabPad.PaddingLeft = UDim.new(0, 12)
+		tabPad.PaddingRight = UDim.new(0, 8)
 		tabPad.Parent = tab
+
+		local tabRowLayout = Instance.new("UIListLayout")
+		tabRowLayout.FillDirection = Enum.FillDirection.Horizontal
+		tabRowLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+		tabRowLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		tabRowLayout.Padding = UDim.new(0, 6)
+		tabRowLayout.Parent = tab
 
 		local tabLabel = Instance.new("TextLabel")
 		tabLabel.Size = UDim2.new(0, 0, 1, 0)
@@ -642,20 +929,33 @@ local function renderTabs()
 		tabLabel.TextColor3 = (id == activeTabId) and C.Text or C.Overlay0
 		tabLabel.FontFace = (id == activeTabId) and FONT_BOLD or FONT
 		tabLabel.TextSize = 11
+		tabLabel.LayoutOrder = 1
 		tabLabel.Parent = tab
 
 		local closeTabBtn = Instance.new("TextButton")
 		closeTabBtn.Size = UDim2.new(0, 18, 0, 18)
-		closeTabBtn.Position = UDim2.new(1, 2, 0.5, -9)
+		closeTabBtn.BackgroundColor3 = C.Surface1
 		closeTabBtn.BackgroundTransparency = 1
-		closeTabBtn.Text = "x"
-		closeTabBtn.TextColor3 = C.Surface2
-		closeTabBtn.FontFace = FONT
-		closeTabBtn.TextSize = 10
+		closeTabBtn.Text = ""
+		closeTabBtn.LayoutOrder = 2
+		closeTabBtn.AutoButtonColor = false
 		closeTabBtn.Parent = tab
+		makeCorner(closeTabBtn, UDim.new(0, 4))
+
+		local closeTabIcon = makeIcon(closeTabBtn, "x", 12, C.Subtext0)
+		closeTabIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+		closeTabIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
+
+		closeTabBtn.MouseEnter:Connect(function()
+			TweenService:Create(closeTabBtn, TWEEN_FAST, {BackgroundTransparency = 0}):Play()
+			TweenService:Create(closeTabIcon, TWEEN_FAST, {ImageColor3 = C.Red}):Play()
+		end)
+		closeTabBtn.MouseLeave:Connect(function()
+			TweenService:Create(closeTabBtn, TWEEN_FAST, {BackgroundTransparency = 1}):Play()
+			TweenService:Create(closeTabIcon, TWEEN_FAST, {ImageColor3 = C.Subtext0}):Play()
+		end)
 
 		closeTabBtn.MouseButton1Click:Connect(function()
-			if #(function() local c = 0 for _ in tabs do c += 1 end return {c} end)() <= 1 then return end
 			local count = 0
 			for _ in tabs do count += 1 end
 			if count <= 1 then return end
@@ -665,10 +965,11 @@ local function renderTabs()
 					activeTabId = nextId
 					break
 				end
+				editorBox.Text = tabs[activeTabId].content
 			end
-			editorBox.Text = tabs[activeTabId].content
 			renderTabs()
 			updateLineNumbers()
+			updateHighlight()
 		end)
 
 		tab.MouseButton1Click:Connect(function()
@@ -676,6 +977,7 @@ local function renderTabs()
 			editorBox.Text = tabs[activeTabId].content
 			renderTabs()
 			updateLineNumbers()
+			updateHighlight()
 		end)
 	end
 end
@@ -813,13 +1115,20 @@ end)
 saveBtn.MouseButton1Click:Connect(function()
 	if not activeTabId or not tabs[activeTabId] then return end
 	local tabData = tabs[activeTabId]
-	local fileName = tabData.name
-	if not fileName:match("%.lua$") and not fileName:match("%.txt$") then
-		fileName = fileName .. ".lua"
+	local defaultName = tabData.name
+	if not defaultName:match("%.lua$") and not defaultName:match("%.txt$") then
+		defaultName = defaultName .. ".lua"
 	end
-	pcall(function()
-		writefile(WORKSPACE_DIR .. "/" .. fileName, editorBox.Text)
-		notify("Saved to " .. fileName .. " in workspace", C.Green)
+	showInputDialog("Save File", "filename.lua", defaultName, function(fileName)
+		if not fileName:match("%.%w+$") then
+			fileName = fileName .. ".lua"
+		end
+		pcall(function()
+			writefile(WORKSPACE_DIR .. "/" .. fileName, editorBox.Text)
+			tabs[activeTabId].name = fileName
+			renderTabs()
+			notify("Saved to " .. fileName .. " in workspace", C.Green)
+		end)
 	end)
 end)
 
@@ -851,7 +1160,6 @@ local function toggleMinimize()
 end
 
 minimizeBtn.MouseButton1Click:Connect(toggleMinimize)
-minimizeToolBtn.MouseButton1Click:Connect(toggleMinimize)
 
 closeBtn.MouseButton1Click:Connect(function()
 	local hasContent = false
