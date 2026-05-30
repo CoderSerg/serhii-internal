@@ -35,7 +35,7 @@ local TWEEN_NOTIF = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirecti
 
 local Lucide
 pcall(function()
-	Lucide = loadstring(game:HttpGet("https://github.com/latte-soft/lucide-roblox/releases/latest/download/lucide-roblox.luau", true))()
+	Lucide = loadstring(game:HttpGet("https://github.com/latte-soft/lucide-roblox/releases/latest/download/lucide-roblox.luau", false))()
 end)
 
 local function nearestIconSize(s)
@@ -50,6 +50,7 @@ local function makeIcon(parent, name, size, color)
 	img.Size = UDim2.new(0, size, 0, size)
 	img.BackgroundTransparency = 1
 	img.ImageColor3 = color or C.Text
+	img.ResampleMode = Enum.ResamplerMode.Pixelated
 	img.Parent = parent
 
 	if Lucide then
@@ -259,8 +260,8 @@ end)
 
 local function makeTitleBtn(iconName, posFromRight, color)
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(0, 26, 0, 22)
-	btn.Position = UDim2.new(1, -(posFromRight * 30) - 8, 0, 6)
+	btn.Size = UDim2.new(0, 28, 0, 24)
+	btn.Position = UDim2.new(1, -(posFromRight * 32) - 8, 0, 5)
 	btn.BackgroundColor3 = C.Surface0
 	btn.BackgroundTransparency = 1
 	btn.Text = ""
@@ -268,7 +269,7 @@ local function makeTitleBtn(iconName, posFromRight, color)
 	btn.Parent = titleBar
 	makeCorner(btn, CORNER_RADIUS_SM)
 
-	local icon = makeIcon(btn, iconName, 14, color or C.Subtext0)
+	local icon = makeIcon(btn, iconName, 16, color or C.Subtext0)
 	icon.AnchorPoint = Vector2.new(0.5, 0.5)
 	icon.Position = UDim2.new(0.5, 0, 0.5, 0)
 
@@ -724,6 +725,17 @@ editorBox:GetPropertyChangedSignal("Text"):Connect(function()
 	if activeTabId and tabs[activeTabId] then
 		tabs[activeTabId].content = editorBox.Text
 	end
+end)
+
+editorBox.Focused:Connect(function()
+	editorBox.TextTransparency = 0
+	highlightLabel.Visible = false
+end)
+
+editorBox.FocusLost:Connect(function()
+	editorBox.TextTransparency = 1
+	highlightLabel.Visible = true
+	updateHighlight()
 end)
 
 updateHighlight()
