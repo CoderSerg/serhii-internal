@@ -42,15 +42,28 @@ local TWEEN_FAST = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirecti
 local TWEEN_NOTIF = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
 local Lucide
-pcall(function()
-	Lucide = loadstring(game:HttpGet("https://github.com/latte-soft/lucide-roblox/releases/latest/download/lucide-roblox.luau", false))()
-end)
+local LUCIDE_URLS = {
+	"https://github.com/latte-soft/lucide-roblox/releases/latest/download/lucide-roblox.luau",
+	"https://raw.githubusercontent.com/latte-soft/lucide-roblox/master/dist/lucide-roblox.luau",
+}
 
 local function nearestIconSize(s)
 	if s <= 16 then return 16
 	elseif s <= 24 then return 24
 	elseif s <= 48 then return 48
 	else return 256 end
+end
+
+local pendingIcons = {}
+
+local function applyIcon(img, name, size)
+	if not Lucide then return end
+	local ok, asset = pcall(Lucide.GetAsset, name, nearestIconSize(size))
+	if ok and asset then
+		img.Image = asset.Url
+		if asset.ImageRectOffset then img.ImageRectOffset = asset.ImageRectOffset end
+		if asset.ImageRectSize then img.ImageRectSize = asset.ImageRectSize end
+	end
 end
 
 local function makeIcon(parent, name, size, color)
@@ -62,16 +75,35 @@ local function makeIcon(parent, name, size, color)
 	img.Parent = parent
 
 	if Lucide then
-		local ok, asset = pcall(Lucide.GetAsset, name, nearestIconSize(size))
-		if ok and asset then
-			img.Image = asset.Url
-			if asset.ImageRectOffset then img.ImageRectOffset = asset.ImageRectOffset end
-			if asset.ImageRectSize then img.ImageRectSize = asset.ImageRectSize end
-		end
+		applyIcon(img, name, size)
+	else
+		table.insert(pendingIcons, { img = img, name = name, size = size })
 	end
 
 	return img
 end
+
+task.spawn(function()
+	for _, url in LUCIDE_URLS do
+		local ok, source = pcall(game.HttpGet, game, url, false)
+		if ok and type(source) == "string" and #source > 100 then
+			local fn = loadstring(source)
+			if fn then
+				local loadOk, mod = pcall(fn)
+				if loadOk and type(mod) == "table" and mod.GetAsset then
+					Lucide = mod
+					for _, p in pendingIcons do
+						if p.img.Parent then
+							applyIcon(p.img, p.name, p.size)
+						end
+					end
+					table.clear(pendingIcons)
+					return
+				end
+			end
+		end
+	end
+end)
 
 local WORKSPACE_DIR = "serhii-internal"
 
