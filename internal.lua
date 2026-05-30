@@ -115,10 +115,10 @@ end)
 loadScripts()
 
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "ExecutorUI"
+screenGui.Name = "serhii-internal-UI"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-screenGui.DisplayOrder = 999
+screenGui.DisplayOrder = 999999999
 
 pcall(function() screenGui.Parent = CoreGui end)
 if not screenGui.Parent then
@@ -272,7 +272,7 @@ local titleLabel = Instance.new("TextLabel")
 titleLabel.Size = UDim2.new(0, 120, 1, 0)
 titleLabel.Position = UDim2.new(0, 12, 0, 0)
 titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "executor"
+titleLabel.Text = "Serhii Internal"
 titleLabel.TextColor3 = C.Subtext0
 titleLabel.FontFace = FONT_BOLD
 titleLabel.TextSize = 12
