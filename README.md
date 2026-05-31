@@ -17,7 +17,7 @@ A Roblox script executor UI built in Luau. Catppuccin Mocha themed, multi-tab ed
 Execute the script in your executor. The UI will appear in the center of your screen.
 
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderSerg/serhii-internal/refs/heads/main/internal.lua", false))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/CoderSerg/serhii-internal/refs/heads/main/internal.luau", false))()
 ```
 
 ## Quick Scripts
