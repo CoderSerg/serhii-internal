@@ -191,7 +191,7 @@ local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "serhii-internal-UI"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-screenGui.DisplayOrder = settings.alwaysOnTop and 999999999 or -1
+screenGui.DisplayOrder = settings.alwaysOnTop and 999999999 or 0
 
 pcall(function() screenGui.Parent = CoreGui end)
 if not screenGui.Parent then
@@ -1321,10 +1321,14 @@ end)
 execBtn.MouseButton1Click:Connect(function()
 	local code = editorBox.Text
 	if code == "" then return end
+	local startTime = os.clock()
 	local success, err = pcall(function()
 		loadstring(code)()
 	end)
-	if not success then
+	local elapsed = (os.clock() - startTime) * 1000
+	if success then
+		appendLog(string.format("Executed in %.2fms", elapsed), C.Teal)
+	else
 		appendLog(tostring(err), C.Red)
 		notify("Error encountered in script, check output", C.Red)
 	end
@@ -1707,7 +1711,7 @@ local function showSettings()
 		settings.customName = nameBox.Text ~= "" and nameBox.Text or "Serhii Internal"
 		saveSettings()
 
-		screenGui.DisplayOrder = settings.alwaysOnTop and 999999999 or -1
+		screenGui.DisplayOrder = settings.alwaysOnTop and 999999999 or 0
 		titleLabel.Text = settings.customName
 		PLACEHOLDER = settings.startMessage
 		updateHighlight()
@@ -1818,10 +1822,14 @@ getgenv().executor = {
 	execute = function(code)
 		local target = code or editorBox.Text
 		if target == "" then return false, "empty" end
+		local startTime = os.clock()
 		local success, err = pcall(function()
 			loadstring(target)()
 		end)
-		if not success then
+		local elapsed = (os.clock() - startTime) * 1000
+		if success then
+			appendLog(string.format("Executed in %.2fms", elapsed), C.Teal)
+		else
 			appendLog(tostring(err), C.Red)
 			notify("Error encountered in script, check output", C.Red)
 		end
