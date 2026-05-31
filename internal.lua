@@ -31,6 +31,7 @@ local C = {
 	Lavender = Color3.fromHex("#b4befe"),
 	Mauve = Color3.fromHex("#cba6f7"),
 	Peach = Color3.fromHex("#fab387"),
+	Teal = Color3.fromHex("#94e2d5"),
 }
 
 local CORNER_RADIUS = UDim.new(0, 10)
@@ -114,6 +115,44 @@ local tabIdCounter = 0
 local minimized = false
 local customScripts = {}
 local SCRIPTS_FILE = WORKSPACE_DIR .. "/scripts.json"
+local SETTINGS_FILE = WORKSPACE_DIR .. "/settings.json"
+
+local DEFAULT_SETTINGS = {
+	alwaysOnTop = true,
+	startMessage = 'print("Hello World!")',
+	customName = "Serhii Internal",
+}
+
+local settings = {}
+for k, v in DEFAULT_SETTINGS do settings[k] = v end
+
+local function jsonEscape(s)
+	return s:gsub('\\', '\\\\'):gsub('"', '\\"'):gsub('\n', '\\n'):gsub('\t', '\\t'):gsub('\r', '\\r')
+end
+
+local function saveSettings()
+	pcall(function()
+		local parts = {
+			'"alwaysOnTop":' .. tostring(settings.alwaysOnTop),
+			'"startMessage":"' .. jsonEscape(settings.startMessage) .. '"',
+			'"customName":"' .. jsonEscape(settings.customName) .. '"',
+		}
+		writefile(SETTINGS_FILE, "{" .. table.concat(parts, ",") .. "}")
+	end)
+end
+
+local function loadSettings()
+	pcall(function()
+		if not isfile(SETTINGS_FILE) then return end
+		local raw = readfile(SETTINGS_FILE)
+		local HttpService = game:GetService("HttpService")
+		local parsed = HttpService:JSONDecode(raw)
+		if type(parsed) ~= "table" then return end
+		if type(parsed.alwaysOnTop) == "boolean" then settings.alwaysOnTop = parsed.alwaysOnTop end
+		if type(parsed.startMessage) == "string" then settings.startMessage = parsed.startMessage end
+		if type(parsed.customName) == "string" and parsed.customName ~= "" then settings.customName = parsed.customName end
+	end)
+end
 
 local function saveScripts()
 	pcall(function()
@@ -146,12 +185,13 @@ pcall(function()
 end)
 
 loadScripts()
+loadSettings()
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "serhii-internal-UI"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-screenGui.DisplayOrder = 999999999
+screenGui.DisplayOrder = settings.alwaysOnTop and 999999999 or 1
 
 pcall(function() screenGui.Parent = CoreGui end)
 if not screenGui.Parent then
@@ -308,7 +348,7 @@ local titleLabel = Instance.new("TextLabel")
 titleLabel.Size = UDim2.new(0, 140, 1, 0)
 titleLabel.Position = UDim2.new(0, 14, 0, 0)
 titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "Serhii Internal"
+titleLabel.Text = settings.customName
 titleLabel.TextColor3 = C.Overlay0
 titleLabel.FontFace = FONT_BOLD
 titleLabel.TextSize = 12
@@ -365,6 +405,7 @@ end
 
 local closeBtn = makeTitleBtn("x", 0, C.Red)
 local minimizeBtn = makeTitleBtn("minus", 1, C.Yellow)
+local settingsBtn = makeTitleBtn("settings", 2, C.Subtext0)
 
 local dialogOverlay = Instance.new("Frame")
 dialogOverlay.Name = "DialogOverlay"
@@ -784,7 +825,7 @@ local function highlight(code)
 	return table.concat(out)
 end
 
-local PLACEHOLDER = "-- hello brother noah"
+local PLACEHOLDER = settings.startMessage
 
 local function updateLineNumbers()
 	local text = editorBox.Text
@@ -836,6 +877,199 @@ toolbar.Position = UDim2.new(0, 0, 1, -42)
 toolbar.BackgroundColor3 = C.Mantle
 toolbar.BorderSizePixel = 0
 toolbar.Parent = contentFrame
+
+local consolePanel = Instance.new("Frame")
+consolePanel.Name = "Console"
+consolePanel.Size = UDim2.new(1, 0, 0, 160)
+consolePanel.Position = UDim2.new(0, 0, 1, -42)
+consolePanel.AnchorPoint = Vector2.new(0, 1)
+consolePanel.BackgroundColor3 = C.Crust
+consolePanel.BorderSizePixel = 0
+consolePanel.Visible = false
+consolePanel.ZIndex = 30
+consolePanel.ClipsDescendants = true
+consolePanel.Parent = contentFrame
+
+local consoleHeader = Instance.new("Frame")
+consoleHeader.Size = UDim2.new(1, 0, 0, 28)
+consoleHeader.BackgroundColor3 = C.Mantle
+consoleHeader.BorderSizePixel = 0
+consoleHeader.ZIndex = 31
+consoleHeader.Parent = consolePanel
+
+local consoleTitle = Instance.new("TextLabel")
+consoleTitle.Size = UDim2.new(0, 120, 1, 0)
+consoleTitle.Position = UDim2.new(0, 12, 0, 0)
+consoleTitle.BackgroundTransparency = 1
+consoleTitle.Text = "Output"
+consoleTitle.TextColor3 = C.Overlay0
+consoleTitle.FontFace = FONT_BOLD
+consoleTitle.TextSize = 11
+consoleTitle.TextXAlignment = Enum.TextXAlignment.Left
+consoleTitle.ZIndex = 32
+consoleTitle.Parent = consoleHeader
+
+local consoleClearBtn = Instance.new("TextButton")
+consoleClearBtn.Size = UDim2.new(0, 24, 0, 20)
+consoleClearBtn.AnchorPoint = Vector2.new(1, 0.5)
+consoleClearBtn.Position = UDim2.new(1, -38, 0.5, 0)
+consoleClearBtn.BackgroundColor3 = C.Surface0
+consoleClearBtn.BackgroundTransparency = 1
+consoleClearBtn.Text = ""
+consoleClearBtn.AutoButtonColor = false
+consoleClearBtn.ZIndex = 32
+consoleClearBtn.Parent = consoleHeader
+makeCorner(consoleClearBtn, UDim.new(0, 4))
+
+local consoleClearIcon = makeIcon(consoleClearBtn, "trash-2", 13, C.Subtext0)
+consoleClearIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+consoleClearIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
+consoleClearIcon.ZIndex = 33
+
+local consoleCloseBtn = Instance.new("TextButton")
+consoleCloseBtn.Size = UDim2.new(0, 24, 0, 20)
+consoleCloseBtn.AnchorPoint = Vector2.new(1, 0.5)
+consoleCloseBtn.Position = UDim2.new(1, -10, 0.5, 0)
+consoleCloseBtn.BackgroundColor3 = C.Surface0
+consoleCloseBtn.BackgroundTransparency = 1
+consoleCloseBtn.Text = ""
+consoleCloseBtn.AutoButtonColor = false
+consoleCloseBtn.ZIndex = 32
+consoleCloseBtn.Parent = consoleHeader
+makeCorner(consoleCloseBtn, UDim.new(0, 4))
+
+local consoleCloseIcon = makeIcon(consoleCloseBtn, "chevron-down", 14, C.Subtext0)
+consoleCloseIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+consoleCloseIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
+consoleCloseIcon.ZIndex = 33
+
+local consoleScroll = Instance.new("ScrollingFrame")
+consoleScroll.Size = UDim2.new(1, 0, 1, -28)
+consoleScroll.Position = UDim2.new(0, 0, 0, 28)
+consoleScroll.BackgroundTransparency = 1
+consoleScroll.BorderSizePixel = 0
+consoleScroll.ScrollBarThickness = 4
+consoleScroll.ScrollBarImageColor3 = C.Surface1
+consoleScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+consoleScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+consoleScroll.ZIndex = 31
+consoleScroll.Parent = consolePanel
+
+local consoleLayout = Instance.new("UIListLayout")
+consoleLayout.SortOrder = Enum.SortOrder.LayoutOrder
+consoleLayout.Padding = UDim.new(0, 2)
+consoleLayout.Parent = consoleScroll
+
+local consolePad = Instance.new("UIPadding")
+consolePad.PaddingTop = UDim.new(0, 6)
+consolePad.PaddingBottom = UDim.new(0, 6)
+consolePad.PaddingLeft = UDim.new(0, 12)
+consolePad.PaddingRight = UDim.new(0, 12)
+consolePad.Parent = consoleScroll
+
+local consoleEmpty = Instance.new("TextLabel")
+consoleEmpty.Size = UDim2.new(1, 0, 0, 20)
+consoleEmpty.BackgroundTransparency = 1
+consoleEmpty.Text = "No output yet"
+consoleEmpty.TextColor3 = C.Surface2
+consoleEmpty.FontFace = FONT_MONO
+consoleEmpty.TextSize = 12
+consoleEmpty.TextXAlignment = Enum.TextXAlignment.Left
+consoleEmpty.ZIndex = 31
+consoleEmpty.LayoutOrder = 0
+consoleEmpty.Parent = consoleScroll
+
+local consoleOpen = false
+local logCount = 0
+
+local function appendLog(message, msgColor)
+	if consoleEmpty then
+		consoleEmpty:Destroy()
+		consoleEmpty = nil
+	end
+	logCount += 1
+	local line = Instance.new("TextBox")
+	line.Size = UDim2.new(1, 0, 0, 0)
+	line.AutomaticSize = Enum.AutomaticSize.Y
+	line.BackgroundTransparency = 1
+	line.Text = message
+	line.TextColor3 = msgColor or C.Text
+	line.FontFace = FONT_MONO
+	line.TextSize = 12
+	line.TextXAlignment = Enum.TextXAlignment.Left
+	line.TextYAlignment = Enum.TextYAlignment.Top
+	line.TextWrapped = true
+	line.ClearTextOnFocus = false
+	line.TextEditable = false
+	line.LayoutOrder = logCount
+	line.ZIndex = 31
+	line.Parent = consoleScroll
+
+	task.defer(function()
+		consoleScroll.CanvasPosition = Vector2.new(0, consoleScroll.AbsoluteCanvasSize.Y)
+	end)
+end
+
+local LogService = game:GetService("LogService")
+LogService.MessageOut:Connect(function(message, messageType)
+	local col = C.Text
+	if messageType == Enum.MessageType.MessageError then
+		col = C.Red
+	elseif messageType == Enum.MessageType.MessageWarning then
+		col = C.Yellow
+	elseif messageType == Enum.MessageType.MessageInfo then
+		col = C.Blue
+	end
+	appendLog(message, col)
+end)
+
+consoleClearBtn.MouseEnter:Connect(function()
+	TweenService:Create(consoleClearBtn, TWEEN_FAST, {BackgroundTransparency = 0}):Play()
+end)
+consoleClearBtn.MouseLeave:Connect(function()
+	TweenService:Create(consoleClearBtn, TWEEN_FAST, {BackgroundTransparency = 1}):Play()
+end)
+consoleClearBtn.MouseButton1Click:Connect(function()
+	for _, child in consoleScroll:GetChildren() do
+		if child:IsA("TextBox") then child:Destroy() end
+	end
+	logCount = 0
+	consoleEmpty = Instance.new("TextLabel")
+	consoleEmpty.Size = UDim2.new(1, 0, 0, 20)
+	consoleEmpty.BackgroundTransparency = 1
+	consoleEmpty.Text = "No output yet"
+	consoleEmpty.TextColor3 = C.Surface2
+	consoleEmpty.FontFace = FONT_MONO
+	consoleEmpty.TextSize = 12
+	consoleEmpty.TextXAlignment = Enum.TextXAlignment.Left
+	consoleEmpty.ZIndex = 31
+	consoleEmpty.LayoutOrder = 0
+	consoleEmpty.Parent = consoleScroll
+end)
+
+local function toggleConsole()
+	consoleOpen = not consoleOpen
+	if consoleOpen then
+		consolePanel.Size = UDim2.new(1, 0, 0, 0)
+		consolePanel.Visible = true
+		TweenService:Create(consolePanel, TWEEN_MED, {Size = UDim2.new(1, 0, 0, 160)}):Play()
+	else
+		local t = TweenService:Create(consolePanel, TWEEN_MED, {Size = UDim2.new(1, 0, 0, 0)})
+		t:Play()
+		t.Completed:Once(function()
+			if not consoleOpen then consolePanel.Visible = false end
+		end)
+	end
+end
+
+consoleCloseBtn.MouseEnter:Connect(function()
+	TweenService:Create(consoleCloseBtn, TWEEN_FAST, {BackgroundTransparency = 0}):Play()
+end)
+consoleCloseBtn.MouseLeave:Connect(function()
+	TweenService:Create(consoleCloseBtn, TWEEN_FAST, {BackgroundTransparency = 1}):Play()
+end)
+consoleCloseBtn.MouseButton1Click:Connect(toggleConsole)
+
 
 local toolbarLayout = Instance.new("UIListLayout")
 toolbarLayout.FillDirection = Enum.FillDirection.Horizontal
@@ -904,10 +1138,11 @@ local function makeToolBtn(text, iconName, color, order)
 end
 
 local execBtn = makeToolBtn("Execute", "play", C.Blue, 1)
-local openBtn = makeToolBtn("Open", "folder-open", C.Surface0, 2)
-local saveBtn = makeToolBtn("Save", "save", C.Surface0, 3)
-local clearBtn = makeToolBtn("Clear", "trash-2", C.Surface0, 4)
-local scriptsBtn = makeToolBtn("Scripts", "list", C.Surface0, 5)
+local outputBtn = makeToolBtn("Output", "terminal", C.Teal, 2)
+local openBtn = makeToolBtn("Open", "folder-open", C.Surface0, 3)
+local saveBtn = makeToolBtn("Save", "save", C.Surface0, 4)
+local clearBtn = makeToolBtn("Clear", "trash-2", C.Surface0, 5)
+local scriptsBtn = makeToolBtn("Scripts", "list", C.Surface0, 6)
 
 local scriptsMenu = Instance.new("Frame")
 scriptsMenu.Name = "ScriptsMenu"
@@ -1111,9 +1346,12 @@ execBtn.MouseButton1Click:Connect(function()
 		loadstring(code)()
 	end)
 	if not success then
-		notify("Error: " .. tostring(err), C.Red)
+		appendLog(tostring(err), C.Red)
+		notify("Error encountered in script, check output", C.Red)
 	end
 end)
+
+outputBtn.MouseButton1Click:Connect(toggleConsole)
 
 openBtn.MouseButton1Click:Connect(function()
 	pcall(function()
@@ -1320,6 +1558,188 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	end
 end)
 
+local function showSettings()
+	dialogOverlay.Visible = true
+	TweenService:Create(dialogOverlay, TWEEN_MED, {BackgroundTransparency = 0.5}):Play()
+
+	for _, child in dialogOverlay:GetChildren() do child:Destroy() end
+
+	local dialog = Instance.new("Frame")
+	dialog.Size = UDim2.new(0, 360, 0, 280)
+	dialog.AnchorPoint = Vector2.new(0.5, 0.5)
+	dialog.Position = UDim2.new(0.5, 0, 0.5, 0)
+	dialog.BackgroundColor3 = C.Mantle
+	dialog.BorderSizePixel = 0
+	dialog.ZIndex = 51
+	dialog.Parent = dialogOverlay
+	makeCorner(dialog)
+	makeStroke(dialog, C.Surface1)
+
+	local pad = Instance.new("UIPadding")
+	pad.PaddingTop = UDim.new(0, 16)
+	pad.PaddingLeft = UDim.new(0, 16)
+	pad.PaddingRight = UDim.new(0, 16)
+	pad.Parent = dialog
+
+	local header = Instance.new("TextLabel")
+	header.Size = UDim2.new(1, 0, 0, 22)
+	header.BackgroundTransparency = 1
+	header.Text = "Settings"
+	header.TextColor3 = C.Text
+	header.FontFace = FONT_BOLD
+	header.TextSize = 16
+	header.TextXAlignment = Enum.TextXAlignment.Left
+	header.ZIndex = 52
+	header.Parent = dialog
+
+	local function makeFieldLabel(text, y)
+		local l = Instance.new("TextLabel")
+		l.Size = UDim2.new(1, 0, 0, 16)
+		l.Position = UDim2.new(0, 0, 0, y)
+		l.BackgroundTransparency = 1
+		l.Text = text
+		l.TextColor3 = C.Subtext0
+		l.FontFace = FONT_BOLD
+		l.TextSize = 11
+		l.TextXAlignment = Enum.TextXAlignment.Left
+		l.ZIndex = 52
+		l.Parent = dialog
+		return l
+	end
+
+	local function makeTextField(default, y, placeholder)
+		local frame = Instance.new("Frame")
+		frame.Size = UDim2.new(1, 0, 0, 32)
+		frame.Position = UDim2.new(0, 0, 0, y)
+		frame.BackgroundColor3 = C.Base
+		frame.BorderSizePixel = 0
+		frame.ZIndex = 52
+		frame.Parent = dialog
+		makeCorner(frame, CORNER_RADIUS_SM)
+		makeStroke(frame, C.Surface1)
+
+		local box = Instance.new("TextBox")
+		box.Size = UDim2.new(1, -16, 1, 0)
+		box.Position = UDim2.new(0, 10, 0, 0)
+		box.BackgroundTransparency = 1
+		box.Text = default
+		box.PlaceholderText = placeholder or ""
+		box.PlaceholderColor3 = C.Surface2
+		box.TextColor3 = C.Text
+		box.FontFace = FONT_MONO
+		box.TextSize = 12
+		box.TextXAlignment = Enum.TextXAlignment.Left
+		box.ClearTextOnFocus = false
+		box.ClipsDescendants = true
+		box.ZIndex = 53
+		box.Parent = frame
+		return box
+	end
+
+	local togRow = Instance.new("Frame")
+	togRow.Size = UDim2.new(1, 0, 0, 28)
+	togRow.Position = UDim2.new(0, 0, 0, 38)
+	togRow.BackgroundTransparency = 1
+	togRow.ZIndex = 52
+	togRow.Parent = dialog
+
+	local togLabel = Instance.new("TextLabel")
+	togLabel.Size = UDim2.new(1, -52, 1, 0)
+	togLabel.BackgroundTransparency = 1
+	togLabel.Text = "Always on top"
+	togLabel.TextColor3 = C.Text
+	togLabel.FontFace = FONT
+	togLabel.TextSize = 13
+	togLabel.TextXAlignment = Enum.TextXAlignment.Left
+	togLabel.ZIndex = 52
+	togLabel.Parent = togRow
+
+	local toggle = Instance.new("TextButton")
+	toggle.Size = UDim2.new(0, 44, 0, 24)
+	toggle.AnchorPoint = Vector2.new(1, 0.5)
+	toggle.Position = UDim2.new(1, 0, 0.5, 0)
+	toggle.BackgroundColor3 = settings.alwaysOnTop and C.Green or C.Surface1
+	toggle.Text = ""
+	toggle.AutoButtonColor = false
+	toggle.ZIndex = 52
+	toggle.Parent = togRow
+	makeCorner(toggle, UDim.new(0, 12))
+
+	local knob = Instance.new("Frame")
+	knob.Size = UDim2.new(0, 18, 0, 18)
+	knob.AnchorPoint = Vector2.new(0, 0.5)
+	knob.Position = settings.alwaysOnTop and UDim2.new(1, -21, 0.5, 0) or UDim2.new(0, 3, 0.5, 0)
+	knob.BackgroundColor3 = C.Crust
+	knob.BorderSizePixel = 0
+	knob.ZIndex = 53
+	knob.Parent = toggle
+	makeCorner(knob, UDim.new(1, 0))
+
+	local togState = settings.alwaysOnTop
+	toggle.MouseButton1Click:Connect(function()
+		togState = not togState
+		TweenService:Create(toggle, TWEEN_MED, {BackgroundColor3 = togState and C.Green or C.Surface1}):Play()
+		TweenService:Create(knob, TWEEN_MED, {Position = togState and UDim2.new(1, -21, 0.5, 0) or UDim2.new(0, 3, 0.5, 0)}):Play()
+	end)
+
+	makeFieldLabel("Start message", 76)
+	local startBox = makeTextField(settings.startMessage, 94, 'print("Hello World!")')
+
+	makeFieldLabel("Custom name", 134)
+	local nameBox = makeTextField(settings.customName, 152, "Serhii Internal")
+
+	local function closeDialog()
+		TweenService:Create(dialogOverlay, TWEEN_MED, {BackgroundTransparency = 1}):Play()
+		task.delay(0.2, function() dialogOverlay.Visible = false end)
+	end
+
+	local saveBtn2 = Instance.new("TextButton")
+	saveBtn2.Size = UDim2.new(0, 80, 0, 32)
+	saveBtn2.AnchorPoint = Vector2.new(1, 1)
+	saveBtn2.Position = UDim2.new(1, 0, 1, -16)
+	saveBtn2.BackgroundColor3 = C.Blue
+	saveBtn2.Text = "Save"
+	saveBtn2.TextColor3 = C.Crust
+	saveBtn2.FontFace = FONT_BOLD
+	saveBtn2.TextSize = 12
+	saveBtn2.AutoButtonColor = false
+	saveBtn2.ZIndex = 52
+	saveBtn2.Parent = dialog
+	makeCorner(saveBtn2, CORNER_RADIUS_SM)
+
+	local cancelBtn2 = Instance.new("TextButton")
+	cancelBtn2.Size = UDim2.new(0, 80, 0, 32)
+	cancelBtn2.AnchorPoint = Vector2.new(1, 1)
+	cancelBtn2.Position = UDim2.new(1, -88, 1, -16)
+	cancelBtn2.BackgroundColor3 = C.Surface0
+	cancelBtn2.Text = "Cancel"
+	cancelBtn2.TextColor3 = C.Text
+	cancelBtn2.FontFace = FONT
+	cancelBtn2.TextSize = 12
+	cancelBtn2.AutoButtonColor = false
+	cancelBtn2.ZIndex = 52
+	cancelBtn2.Parent = dialog
+	makeCorner(cancelBtn2, CORNER_RADIUS_SM)
+
+	cancelBtn2.MouseButton1Click:Connect(closeDialog)
+	saveBtn2.MouseButton1Click:Connect(function()
+		settings.alwaysOnTop = togState
+		settings.startMessage = startBox.Text
+		settings.customName = nameBox.Text ~= "" and nameBox.Text or "Serhii Internal"
+		saveSettings()
+
+		screenGui.DisplayOrder = settings.alwaysOnTop and 999999999 or 1
+		titleLabel.Text = settings.customName
+		PLACEHOLDER = settings.startMessage
+		updateHighlight()
+
+		closeDialog()
+		notify("Settings saved", C.Green)
+	end)
+end
+
+settingsBtn.MouseButton1Click:Connect(showSettings)
+
 getgenv().addScript = function(name, code)
 	for _, scr in customScripts do
 		if scr.name == name then
@@ -1423,7 +1843,8 @@ getgenv().executor = {
 			loadstring(target)()
 		end)
 		if not success then
-			notify("Error: " .. tostring(err), C.Red)
+			appendLog(tostring(err), C.Red)
+			notify("Error encountered in script, check output", C.Red)
 		end
 		return success, err
 	end,
@@ -1467,6 +1888,12 @@ getgenv().executor = {
 	minimize = toggleMinimize,
 
 	restore = restoreWindow,
+
+	openSettings = showSettings,
+
+	getSettings = function()
+		return { alwaysOnTop = settings.alwaysOnTop, startMessage = settings.startMessage, customName = settings.customName }
+	end,
 
 	isMinimized = function()
 		return minimized
