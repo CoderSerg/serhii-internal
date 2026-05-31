@@ -283,14 +283,15 @@ makeStroke(mainFrame, C.Surface0)
 
 local shadow = Instance.new("ImageLabel")
 shadow.Name = "Shadow"
-shadow.Size = UDim2.new(1, 36, 1, 36)
-shadow.Position = UDim2.new(0, -18, 0, -18)
+shadow.Size = UDim2.new(1, 40, 1, 40)
+shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+shadow.Position = UDim2.new(0.5, 0, 0.5, 6)
 shadow.BackgroundTransparency = 1
-shadow.Image = "rbxassetid://5554236805"
+shadow.Image = "rbxassetid://6014261993"
 shadow.ImageColor3 = Color3.new(0, 0, 0)
-shadow.ImageTransparency = 0.55
+shadow.ImageTransparency = 0.5
 shadow.ScaleType = Enum.ScaleType.Slice
-shadow.SliceCenter = Rect.new(23, 23, 277, 277)
+shadow.SliceCenter = Rect.new(49, 49, 450, 450)
 shadow.ZIndex = 0
 shadow.Parent = mainFrame
 
@@ -307,14 +308,15 @@ launcher.Parent = screenGui
 makeCorner(launcher, UDim.new(0, 14))
 
 local launcherShadow = Instance.new("ImageLabel")
-launcherShadow.Size = UDim2.new(1, 20, 1, 20)
-launcherShadow.Position = UDim2.new(0, -10, 0, -10)
+launcherShadow.Size = UDim2.new(1, 28, 1, 28)
+launcherShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+launcherShadow.Position = UDim2.new(0.5, 0, 0.5, 4)
 launcherShadow.BackgroundTransparency = 1
-launcherShadow.Image = "rbxassetid://5554236805"
-launcherShadow.ImageColor3 = C.Crust
+launcherShadow.Image = "rbxassetid://6014261993"
+launcherShadow.ImageColor3 = Color3.new(0, 0, 0)
 launcherShadow.ImageTransparency = 0.5
 launcherShadow.ScaleType = Enum.ScaleType.Slice
-launcherShadow.SliceCenter = Rect.new(23, 23, 277, 277)
+launcherShadow.SliceCenter = Rect.new(49, 49, 450, 450)
 launcherShadow.ZIndex = 0
 launcherShadow.Parent = launcher
 
@@ -1105,7 +1107,7 @@ local function makeToolBtn(text, iconName, color, order)
 	row.Padding = UDim.new(0, 6)
 	row.Parent = btn
 
-	local isColored = (color == C.Green or color == C.Blue or color == C.Red or color == C.Yellow or color == C.Mauve)
+	local isColored = (color == C.Green or color == C.Blue or color == C.Red or color == C.Yellow or color == C.Mauve or color == C.Teal)
 	local fgColor = isColored and C.Crust or C.Text
 
 	local icon = makeIcon(btn, iconName, 14, fgColor)
