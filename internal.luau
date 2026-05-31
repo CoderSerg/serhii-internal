@@ -191,7 +191,7 @@ local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "serhii-internal-UI"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-screenGui.DisplayOrder = settings.alwaysOnTop and 999999999 or 1
+screenGui.DisplayOrder = settings.alwaysOnTop and 999999999 or 0
 
 pcall(function() screenGui.Parent = CoreGui end)
 if not screenGui.Parent then
@@ -281,19 +281,7 @@ mainFrame.Parent = screenGui
 makeCorner(mainFrame)
 makeStroke(mainFrame, C.Surface0)
 
-local shadow = Instance.new("ImageLabel")
-shadow.Name = "Shadow"
-shadow.Size = UDim2.new(1, 40, 1, 40)
-shadow.AnchorPoint = Vector2.new(0.5, 0.5)
-shadow.Position = UDim2.new(0.5, 0, 0.5, 6)
-shadow.BackgroundTransparency = 1
-shadow.Image = "rbxassetid://6014261993"
-shadow.ImageColor3 = Color3.new(0, 0, 0)
-shadow.ImageTransparency = 0.5
-shadow.ScaleType = Enum.ScaleType.Slice
-shadow.SliceCenter = Rect.new(49, 49, 450, 450)
-shadow.ZIndex = 0
-shadow.Parent = mainFrame
+local shadow = nil
 
 local launcher = Instance.new("TextButton")
 launcher.Name = "Launcher"
@@ -307,18 +295,7 @@ launcher.Visible = false
 launcher.Parent = screenGui
 makeCorner(launcher, UDim.new(0, 14))
 
-local launcherShadow = Instance.new("ImageLabel")
-launcherShadow.Size = UDim2.new(1, 28, 1, 28)
-launcherShadow.AnchorPoint = Vector2.new(0.5, 0.5)
-launcherShadow.Position = UDim2.new(0.5, 0, 0.5, 4)
-launcherShadow.BackgroundTransparency = 1
-launcherShadow.Image = "rbxassetid://6014261993"
-launcherShadow.ImageColor3 = Color3.new(0, 0, 0)
-launcherShadow.ImageTransparency = 0.5
-launcherShadow.ScaleType = Enum.ScaleType.Slice
-launcherShadow.SliceCenter = Rect.new(49, 49, 450, 450)
-launcherShadow.ZIndex = 0
-launcherShadow.Parent = launcher
+local launcherShadow = nil
 
 local launcherIcon = makeIcon(launcher, "code", 24, C.Text)
 launcherIcon.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -1730,7 +1707,7 @@ local function showSettings()
 		settings.customName = nameBox.Text ~= "" and nameBox.Text or "Serhii Internal"
 		saveSettings()
 
-		screenGui.DisplayOrder = settings.alwaysOnTop and 999999999 or 1
+		screenGui.DisplayOrder = settings.alwaysOnTop and 999999999 or 0
 		titleLabel.Text = settings.customName
 		PLACEHOLDER = settings.startMessage
 		updateHighlight()
