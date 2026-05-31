@@ -191,7 +191,7 @@ local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "serhii-internal-UI"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-screenGui.DisplayOrder = settings.alwaysOnTop and 999999999 or 0
+screenGui.DisplayOrder = settings.alwaysOnTop and 999999999 or -1
 
 pcall(function() screenGui.Parent = CoreGui end)
 if not screenGui.Parent then
@@ -1707,7 +1707,7 @@ local function showSettings()
 		settings.customName = nameBox.Text ~= "" and nameBox.Text or "Serhii Internal"
 		saveSettings()
 
-		screenGui.DisplayOrder = settings.alwaysOnTop and 999999999 or 0
+		screenGui.DisplayOrder = settings.alwaysOnTop and 999999999 or -1
 		titleLabel.Text = settings.customName
 		PLACEHOLDER = settings.startMessage
 		updateHighlight()
